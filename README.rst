@@ -1,4 +1,4 @@
-Electrum-LTC - Lightweight Litecoin client
+Electrum-FJC - Lightweight Litecoin client
 ==========================================
 
 ::
@@ -6,8 +6,9 @@ Electrum-LTC - Lightweight Litecoin client
   Licence: MIT Licence
   Original Author: Thomas Voegtlin
   Port Maintainer: Pooler
+  Port Maintainer: namuyan (Electrum-FJC)
   Language: Python
-  Homepage: https://electrum-ltc.org/
+  Homepage: https://fujicoin.org/
 
 
 
@@ -21,13 +22,15 @@ Electrum is a pure python application. If you want to use the
 Qt interface, install the Qt dependencies::
 
     sudo apt-get install python-qt4
+    
+    sudo pip2 install git+git+https://github.com/namuyan/fjc-scrypt
 
 If you downloaded the official package (tar.gz), you can run
 Electrum from its root directory, without installing it on your
 system; all the python dependencies are included in the 'packages'
 directory. To run Electrum from its root directory, just do::
 
-    ./electrum-ltc
+    ./electrum-fjc
 
 You can also install Electrum on your system, by running this command::
 
@@ -47,8 +50,8 @@ Development version
 
 Check out the code from Github::
 
-    git clone git://github.com/pooler/electrum-ltc.git
-    cd electrum-ltc
+    git clone git://github.com/namuyan/electrum-fjc.git
+    cd electrum-fjc
 
 Run install (this should install dependencies)::
 
@@ -81,6 +84,9 @@ To create binaries, create the 'packages' directory::
     ./contrib/make_packages
 
 This directory contains the python dependencies used by Electrum.
+If you get ImportErrors, this is because the modules aren't installed or
+are installed, but compressed. Uninstall/install dependencies with pip,
+which always installs everything unzipped.
 
 Mac OS X
 --------
@@ -93,7 +99,7 @@ Mac OS X
     # On Homebrew installs: 
     ARCHFLAGS="-arch i386 -arch x86_64" sudo python setup-release.py py2app --includes sip
     
-    sudo hdiutil create -fs HFS+ -volname "Electrum-LTC" -srcfolder dist/Electrum-LTC.app dist/electrum-ltc-VERSION-macosx.dmg
+    sudo hdiutil create -fs HFS+ -volname "Electrum-FJC" -srcfolder dist/Electrum-FJC.app dist/electrum-fjc-VERSION-macosx.dmg
 
 Windows
 -------

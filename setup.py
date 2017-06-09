@@ -28,12 +28,12 @@ if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
         else:
             usr_share = os.path.expanduser('~/.local/share')
     data_files += [
-        (os.path.join(usr_share, 'applications/'), ['electrum-ltc.desktop']),
-        (os.path.join(usr_share, 'pixmaps/'), ['icons/electrum-ltc.png'])
+        (os.path.join(usr_share, 'applications/'), ['electrum-fjc.desktop']),
+        (os.path.join(usr_share, 'pixmaps/'), ['icons/electrum-fjc.png'])
     ]
 
 setup(
-    name="Electrum-LTC",
+    name="Electrum-FJC",
     version=version.ELECTRUM_VERSION,
     install_requires=[
         'pyaes',
@@ -41,7 +41,7 @@ setup(
         'pbkdf2',
         'requests',
         'qrcode',
-        'ltc_scrypt',
+        'fjc_scrypt',
         'protobuf',
         'dnspython',
         'jsonrpclib',
@@ -76,12 +76,12 @@ setup(
             'locale/*/LC_MESSAGES/electrum.mo',
         ]
     },
-    scripts=['electrum-ltc'],
+    scripts=['electrum-fjc'],
     data_files=data_files,
-    description="Lightweight Litecoin Wallet",
+    description="Lightweight Fujicoin Wallet",
     author="Thomas Voegtlin",
     author_email="thomasv@electrum.org",
     license="MIT Licence",
-    url="http://electrum-ltc.org",
-    long_description="""Lightweight Litecoin Wallet"""
+    url="https://github.com/namuyan/electrum-fjc",
+    long_description="""Lightweight Fujicoin Wallet"""
 )

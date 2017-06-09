@@ -6,7 +6,7 @@ dist/
 *.egg/
 /electrum.py
 contrib/pyinstaller/
-Electrum_LTC.egg-info/
+Electrum_FJC.egg-info/
 gui/qt/icons_rc.py
 locale/
 .devlocaltmp/
@@ -16,3 +16,6 @@ env/
 .tox/
 .buildozer/
 bin/
+/.vs
+contrib/build-wine/tmp/
+.vscode/settings.json 

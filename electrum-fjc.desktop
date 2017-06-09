@@ -1,0 +1,17 @@
+# If you want electrum to appear in a linux app launcher ("start menu"), install this by doing:
+# sudo desktop-file-install electrum.desktop
+
+[Desktop Entry]
+Comment=Lightweight Fujicoin Client
+Exec=electrum-fjc %u
+GenericName[en_US]=Fujicoin Wallet
+GenericName=Fujicoin Wallet
+Icon=electrum-fjc
+Name[en_US]=Electrum Fujicoin Wallet
+Name=Electrum Fujicoin Wallet
+Categories=Finance;Network;
+StartupNotify=false
+Terminal=false
+Type=Application
+MimeType=x-scheme-handler/fujicoin;
+

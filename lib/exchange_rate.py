@@ -86,132 +86,42 @@ class ExchangeBase(PrintError):
         rates = self.get_rates('')
         return [str(a) for (a, b) in rates.iteritems() if b is not None]
 
-
-class Bit2C(ExchangeBase):
+class Bleutrade(ExchangeBase):
     def get_rates(self, ccy):
-        json = self.get_json('www.bit2c.co.il', '/Exchanges/LTCNIS/Ticker.json')
-        return {'NIS': Decimal(json['ll'])}
-
-class BitcoinAverage(ExchangeBase):
-    def get_rates(self, ccy):
-        json = self.get_json('apiv2.bitcoinaverage.com', '/indices/global/ticker/LTC%s' % ccy)
-        return {ccy: Decimal(json['last'])}
-
+        json = self.get_json('bleutrade.com/api/v2', '/public/getticker?market=FJC_%s' % ccy)
+        # 返り値 {'BTC': Decimal(0.1234)}
+        return {ccy: Decimal(json['result'][0]['Last'])}
+    
     def history_ccys(self):
-        return ['AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'EUR', 'GBP', 'IDR', 'ILS',
-                'MXN', 'NOK', 'NZD', 'PLN', 'RON', 'RUB', 'SEK', 'SGD', 'USD',
-                'ZAR']
+        # ccyで使用される通貨類
+        return ['BTC', 'DOGE']
 
     def historical_rates(self, ccy):
-        history = self.get_csv('apiv2.bitcoinaverage.com',
-                               "/indices/global/history/LTC%s?format=csv" % ccy)
-        return dict([(h['DateTime'][:10], h['Average'])
-                     for h in history])
+        history = self.get_json('bleutrade.com/api/v2',
+                               "/public/getmarkethistory?market=FJC_%s&count=100" % ccy)
+        # 返り値 {"2013-08-16":"2.75","2013-09-13":"2.54331"～～,"2013-09-18":"2.509977"}
+        return dict([(h['TimeStamp'][:10], h['Price'])
+                     for h in history['result'])
 
-class BitcoinVenezuela(ExchangeBase):
-
+class Cryptopia(ExchangeBase):
     def get_rates(self, ccy):
-        json = self.get_json('api.bitcoinvenezuela.com', '/')
-        rates = [(r, json['LTC'][r]) for r in json['LTC']
-                 if json['LTC'][r] is not None]  # Giving NULL sometimes
-        return dict(rates)
+        json = self.get_json('www.cryptopia.co.nz', '/api/GetMarket/FJC_%s' % ccy)
+        return {ccy: Decimal(json['Data']['LastPrice'])}
 
+class C_Cex(ExchangeBase):
+    def get_rates(self, ccy):
+        json = self.get_json('c-cex.com', '/t/prices.json')
+        return {ccy: Decimal(json[ccy + '-btc']['lastbuy'])}
+    
     def history_ccys(self):
-        return ['ARS', 'EUR', 'USD', 'VEF']
+        return ['BTC', 'LTC', 'DOGE']
 
     def historical_rates(self, ccy):
-        return self.get_json('api.bitcoinvenezuela.com',
-                             "/historical/index.php?coin=LTC")[ccy +'_LTC']
-
-class Bitfinex(ExchangeBase):
-    def get_rates(self, ccy):
-        json = self.get_json('api.bitfinex.com', '/v1/pubticker/ltcusd')
-        return {'USD': Decimal(json['last_price'])}
-
-class BTCChina(ExchangeBase):
-    def get_rates(self, ccy):
-        json = self.get_json('data.btcchina.com', '/data/ticker?market=ltccny')
-        return {'CNY': Decimal(json['ticker']['last'])}
-
-class BTCe(ExchangeBase):
-    def get_rates(self, ccy):
-        ccys = ['EUR', 'RUR', 'USD']
-        ccy_str = '-'.join(['ltc_%s' % c.lower() for c in ccys])
-        json = self.get_json('btc-e.com', '/api/3/ticker/%s' % ccy_str)
-        result = dict.fromkeys(ccys)
-        for ccy in ccys:
-            result[ccy] = Decimal(json['ltc_%s' % ccy.lower()]['last'])
-        return result
-
-class CaVirtEx(ExchangeBase):
-    def get_rates(self, ccy):
-        json = self.get_json('www.cavirtex.com', '/api2/ticker.json?currencypair=LTCCAD')
-        return {'CAD': Decimal(json['ticker']['LTCCAD']['last'])}
-
-class CoinSpot(ExchangeBase):
-    def get_rates(self, ccy):
-        json = self.get_json('www.coinspot.com.au', '/pubapi/latest')
-        return {'AUD': Decimal(json['prices']['ltc']['last'])}
-
-class GoCoin(ExchangeBase):
-    def get_rates(self, ccy):
-        json = self.get_json('x.g0cn.com', '/prices')
-        ltc_prices = json['prices']['LTC']
-        return dict([(r, Decimal(ltc_prices[r])) for r in ltc_prices])
-
-class HitBTC(ExchangeBase):
-    def get_rates(self, ccy):
-        ccys = ['EUR', 'USD']
-        json = self.get_json('api.hitbtc.com', '/api/1/public/LTC%s/ticker' % ccy)
-        result = dict.fromkeys(ccys)
-        if ccy in ccys:
-            result[ccy] = Decimal(json['last'])
-        return result
-
-class Kraken(ExchangeBase):
-    def get_rates(self, ccy):
-        dicts = self.get_json('api.kraken.com', '/0/public/AssetPairs')
-        pairs = [k for k in dicts['result'] if k.startswith('XLTCZ')]
-        json = self.get_json('api.kraken.com',
-                             '/0/public/Ticker?pair=%s' % ','.join(pairs))
-        ccys = [p[5:] for p in pairs]
-        result = dict.fromkeys(ccys)
-        result[ccy] = Decimal(json['result']['XLTCZ'+ccy]['c'][0])
-        return result
-
-    def history_ccys(self):
-        return ['EUR', 'USD']
-
-    def historical_rates(self, ccy):
-        query = '/0/public/OHLC?pair=LTC%s&interval=1440' % ccy
-        json = self.get_json('api.kraken.com', query)
-        history = json['result']['XLTCZ'+ccy]
-        return dict([(time.strftime('%Y-%m-%d', time.localtime(t[0])), t[4])
-                                    for t in history])
-
-class OKCoin(ExchangeBase):
-    def get_rates(self, ccy):
-        json = self.get_json('www.okcoin.cn', '/api/ticker.do?symbol=ltc_cny')
-        return {'CNY': Decimal(json['ticker']['last'])}
-
-class MercadoBitcoin(ExchangeBase):
-    def get_rates(self,ccy):
-        json = self.get_json('mercadobitcoin.net',
-                                "/api/v2/ticker_litecoin")
-        return {'BRL': Decimal(json['ticker']['last'])}
-
-    def history_ccys(self):
-        return ['BRL']
-
-class Bitcointoyou(ExchangeBase):
-    def get_rates(self,ccy):
-        json = self.get_json('bitcointoyou.com',
-                                "/API/ticker_litecoin.aspx")
-        return {'BRL': Decimal(json['ticker']['last'])}
-
-    def history_ccys(self):
-        return ['BRL']
-
+        history = self.get_json('c-cex.com',
+                               "/t/api_pub.html?a=getmarkethistory&market=FJC-%s&count=10" % ccy)
+        return dict([(h['TimeStamp'][:10], h['Price'])
+                     for h in history['result'])
+# 他は403エラーで取得できず
 
 def dictinvert(d):
     inv = {}

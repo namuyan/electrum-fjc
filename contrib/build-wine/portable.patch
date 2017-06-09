@@ -1,7 +1,7 @@
-diff --git a/electrum-ltc b/electrum-ltc
+diff --git a/electrum-fjc b/electrum-fjc
 index 6029abb..beec018 100755
---- a/electrum-ltc
-+++ b/electrum-ltc
+--- a/electrum-fjc
++++ b/electrum-fjc
 @@ -454,6 +454,8 @@ if __name__ == '__main__':
          if config_options.get('server'):
              config_options['auto_connect'] = False
@@ -9,5 +9,5 @@ index 6029abb..beec018 100755
 +    config_options['portable'] = True
 +
      if config_options.get('portable'):
-         config_options['electrum_path'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'electrum-ltc_data')
+         config_options['electrum_path'] = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'electrum-fjc_data')
  

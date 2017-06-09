@@ -30,16 +30,16 @@ import util
 import bitcoin
 from bitcoin import *
 
-try:
-    from ltc_scrypt import getPoWHash
-except ImportError:
-    util.print_msg("Warning: ltc_scrypt not available, using fallback")
-    from scrypt import scrypt_1024_1_1_80 as getPoWHash
+#import lyra2re_hash
+#import lyra2re2_hash
+import fjc_scrypt
 
 MAX_TARGET = 0x00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 
+
 class Blockchain(util.PrintError):
     '''Manages blockchain headers and their verification'''
+
     def __init__(self, config, network):
         self.config = config
         self.network = network
@@ -56,7 +56,7 @@ class Blockchain(util.PrintError):
             self.downloading_headers = False
             return
         self.downloading_headers = True
-        t = threading.Thread(target = self.init_headers_file)
+        t = threading.Thread(target=self.init_headers_file)
         t.daemon = True
         t.start()
 
@@ -66,7 +66,7 @@ class Blockchain(util.PrintError):
         if header.get('block_height') != self.checkpoint_height:
             return True
         if header.get('prev_block_hash') is None:
-            header['prev_block_hash'] = '00'*32
+            header['prev_block_hash'] = '00' * 32
         try:
             _hash = self.hash_header(header)
         except:
@@ -86,7 +86,7 @@ class Blockchain(util.PrintError):
         if bitcoin.TESTNET:
             return
         if bits != header.get('bits'):
-            raise BaseException("bits mismatch: %s vs %s" % (bits, header.get('bits')))
+            raise BaseException("bits mismatch: %s vs %s for height %s" % (bits, header.get('bits'), header.get('block_height')))
         if int('0x' + _powhash, 16) > target:
             raise BaseException("insufficient proof of work: %s vs target %s" % (int('0x' + _powhash, 16), target))
 
@@ -95,7 +95,7 @@ class Blockchain(util.PrintError):
         prev_header = self.read_header(first_header.get('block_height') - 1)
         for header in chain:
             height = header.get('block_height')
-            bits, target = self.get_target(height / 2016, chain)
+            bits, target = self.get_target(height, chain)
             self.verify_header(header, prev_header, bits, target)
             prev_header = header
 
@@ -103,11 +103,13 @@ class Blockchain(util.PrintError):
         num = len(data) / 80
         prev_header = None
         if index != 0:
-            prev_header = self.read_header(index*2016 - 1)
-        bits, target = self.get_target(index)
+            prev_header = self.read_header(index * 2016 - 1)
+        headers = []
         for i in range(num):
-            raw_header = data[i*80:(i+1) * 80]
-            header = self.deserialize_header(raw_header, index*2016 + i)
+            raw_header = data[i * 80:(i + 1) * 80]
+            header = self.deserialize_header(raw_header, index * 2016 + i)
+            headers.append(header)
+            bits, target = self.get_target(index*2016 + i, headers)
             self.verify_header(header, prev_header, bits, target)
             prev_header = header
 
@@ -138,7 +140,7 @@ class Blockchain(util.PrintError):
         return hash_encode(Hash(self.serialize_header(header).decode('hex')))
 
     def pow_hash_header(self, header):
-        return rev_hex(getPoWHash(self.serialize_header(header).decode('hex')).encode('hex'))
+        return rev_hex(fjc_scrypt.getPoWHash(self.serialize_header(header).decode('hex')).encode('hex'))
 
     def path(self):
         return util.get_headers_path(self.config)
@@ -182,7 +184,7 @@ class Blockchain(util.PrintError):
         self.local_height = 0
         name = self.path()
         if os.path.exists(name):
-            h = os.path.getsize(name)/80 - 1
+            h = os.path.getsize(name) / 80 - 1
             if self.local_height != h:
                 self.local_height = h
 
@@ -203,7 +205,7 @@ class Blockchain(util.PrintError):
 
     def segwit_support(self, N=576):
         h = self.local_height
-        return sum([self.BIP9(h-i, 2) for i in range(N)])*10000/N/100.
+        return sum([self.BIP9(h - i, 2) for i in range(N)]) * 10000 / N / 100.
 
     def check_truncate_headers(self):
         checkpoint = self.read_header(self.checkpoint_height)
@@ -212,42 +214,14 @@ class Blockchain(util.PrintError):
         if self.hash_header(checkpoint) == self.checkpoint_hash:
             return
         self.print_error('checkpoint mismatch:', self.hash_header(checkpoint), self.checkpoint_hash)
-        self.print_error('Truncating headers file at height %d'%self.checkpoint_height)
+        self.print_error('Truncating headers file at height %d' % self.checkpoint_height)
         name = self.path()
         f = open(name, 'rb+')
         f.seek(self.checkpoint_height * 80)
         f.truncate()
         f.close()
 
-    def get_target(self, index, chain=None):
-        if bitcoin.TESTNET:
-            return 0, 0
-        if index == 0:
-            return 0x1e0ffff0, 0x00000FFFF0000000000000000000000000000000000000000000000000000000
-        # Litecoin: go back the full period unless it's the first retarget
-        first = self.read_header((index-1) * 2016 - 1 if index > 1 else 0)
-        last = self.read_header(index*2016 - 1)
-        if last is None:
-            for h in chain:
-                if h.get('block_height') == index*2016 - 1:
-                    last = h
-        assert last is not None
-        # bits to target
-        bits = last.get('bits')
-        bitsN = (bits >> 24) & 0xff
-        if not (bitsN >= 0x03 and bitsN <= 0x1e):
-            raise BaseException("First part of bits should be in [0x03, 0x1e]")
-        bitsBase = bits & 0xffffff
-        if not (bitsBase >= 0x8000 and bitsBase <= 0x7fffff):
-            raise BaseException("Second part of bits should be in [0x8000, 0x7fffff]")
-        target = bitsBase << (8 * (bitsN-3))
-        # new target
-        nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 84 * 60 * 60
-        nActualTimespan = max(nActualTimespan, nTargetTimespan / 4)
-        nActualTimespan = min(nActualTimespan, nTargetTimespan * 4)
-        new_target = min(MAX_TARGET, (target*nActualTimespan) / nTargetTimespan)
-        # convert new target to bits
+    def convbits(self, new_target):
         c = ("%064x" % new_target)[2:]
         while c[:2] == '00' and len(c) > 6:
             c = c[2:]
@@ -256,7 +230,128 @@ class Blockchain(util.PrintError):
             bitsN += 1
             bitsBase >>= 8
         new_bits = bitsN << 24 | bitsBase
-        return new_bits, bitsBase << (8 * (bitsN-3))
+        return new_bits
+        
+    def convbignum(self, bits):
+        bitsN = (bits >> 24) & 0xff
+        if not (bitsN >= 0x03 and bitsN <= 0x1e):
+            raise BaseException("First part of bits should be in [0x03, 0x1e]")
+        bitsBase = bits & 0xffffff
+        if not (bitsBase >= 0x8000 and bitsBase <= 0x7fffff):
+            raise BaseException("Second part of bits should be in [0x8000, 0x7fffff]")
+        target = bitsBase << (8 * (bitsN-3))
+        return target
+        
+        
+        
+    def KimotoGravityWell(self, height, chain=[], data=None):
+        # print_msg ("height=",height,"chain=", chain, "data=", data)
+        BlocksTargetSpacing = 2.5 * 60  # 2.5 minutes
+        TimeDaySeconds = 60 * 60 * 24
+        PastSecondsMin = TimeDaySeconds * 0.25
+        PastSecondsMax = TimeDaySeconds * 7
+        PastBlocksMin = PastSecondsMin / BlocksTargetSpacing
+        PastBlocksMax = PastSecondsMax / BlocksTargetSpacing
+
+        BlockReadingIndex = height - 1
+        BlockLastSolvedIndex = height - 1
+        TargetBlocksSpacingSeconds = BlocksTargetSpacing
+        PastRateAdjustmentRatio = 1.0
+        bnProofOfWorkLimit = 0x00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+
+        if (BlockLastSolvedIndex <= 0 or BlockLastSolvedIndex < PastSecondsMin):
+            new_target = bnProofOfWorkLimit
+            new_bits = self.convbits(new_target)
+            return new_bits, new_target
+
+        last = self.read_header(BlockLastSolvedIndex)
+        if last == None:
+            for h in chain:
+                if h.get('block_height') == BlockLastSolvedIndex:
+                    last = h
+                    break
+
+        for i in xrange(1, int(PastBlocksMax) + 1):
+            PastBlocksMass = i
+
+            reading = self.read_header(BlockReadingIndex)
+
+            if reading == None:
+                for h in chain:
+                    if h.get('block_height') == BlockReadingIndex:
+                        # print_msg("get block from chain")
+                        reading = h
+                        break
+
+            if (reading == None or last == None):
+                raise BaseException("Could not find previous blocks when calculating difficulty reading: "
+				+ str(BlockReadingIndex) + ", last: " + str(BlockLastSolvedIndex) + ", height: " + str(height))
+
+            # print_msg ("last=",last)
+            if (i == 1):
+                print_msg("reading(", BlockReadingIndex, ")=", reading)
+                PastDifficultyAverage = self.convbignum(reading.get('bits'))
+            else:
+                PastDifficultyAverage = float(
+                    (self.convbignum(reading.get('bits')) - PastDifficultyAveragePrev) / float(
+                        i)) + PastDifficultyAveragePrev
+
+            PastDifficultyAveragePrev = PastDifficultyAverage
+
+            PastRateActualSeconds = last.get('timestamp') - reading.get('timestamp')
+            PastRateTargetSeconds = TargetBlocksSpacingSeconds * PastBlocksMass
+            PastRateAdjustmentRatio = 1.0
+            if (PastRateActualSeconds < 0):
+                PastRateActualSeconds = 0.0
+
+            if (PastRateActualSeconds != 0 and PastRateTargetSeconds != 0):
+                PastRateAdjustmentRatio = float(PastRateTargetSeconds) / float(PastRateActualSeconds)
+
+            EventHorizonDeviation = 1 + (0.7084 * pow(float(PastBlocksMass) / float(144), -1.228))
+            EventHorizonDeviationFast = EventHorizonDeviation
+            EventHorizonDeviationSlow = float(1) / float(EventHorizonDeviation)
+
+            # print_msg ("EventHorizonDeviation=",EventHorizonDeviation,"EventHorizonDeviationFast=",EventHorizonDeviationFast,"EventHorizonDeviationSlow=",EventHorizonDeviationSlow )
+
+            if (PastBlocksMass >= PastBlocksMin):
+
+                if ((PastRateAdjustmentRatio <= EventHorizonDeviationSlow) or (
+                    PastRateAdjustmentRatio >= EventHorizonDeviationFast)):
+                    break
+
+                if (BlockReadingIndex < 1):
+                    break
+
+            BlockReadingIndex = BlockReadingIndex - 1
+        # print_msg ("BlockReadingIndex=",BlockReadingIndex )
+
+
+        # print_msg ("for end: PastBlocksMass=",PastBlocksMass )
+        bnNew = PastDifficultyAverage
+        if (PastRateActualSeconds != 0 and PastRateTargetSeconds != 0):
+            bnNew *= float(PastRateActualSeconds)
+            bnNew /= float(PastRateTargetSeconds)
+
+        if (bnNew > bnProofOfWorkLimit):
+            bnNew = bnProofOfWorkLimit
+
+        # new target
+        new_target = bnNew
+        new_bits = self.convbits(new_target)
+
+        # print_msg("bits", new_bits , "(", hex(new_bits),")")
+        # print_msg ("PastRateAdjustmentRatio=",PastRateAdjustmentRatio,"EventHorizonDeviationSlow",EventHorizonDeviationSlow,"PastSecondsMin=",PastSecondsMin,"PastSecondsMax=",PastSecondsMax,"PastBlocksMin=",PastBlocksMin,"PastBlocksMax=",PastBlocksMax)
+
+        return new_bits, new_target
+
+    def get_target(self, height, chain=None):
+        if bitcoin.TESTNET:
+            return 0, 0
+
+        if height == 0:
+            return 0x1e0ffff0, 0x00000FFFF0000000000000000000000000000000000000000000000000000000
+
+        return self.KimotoGravityWell(height, chain)
 
     def connect_header(self, chain, header):
         '''Builds a header chain until it connects.  Returns True if it has

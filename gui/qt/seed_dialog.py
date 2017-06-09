@@ -67,7 +67,7 @@ class SeedLayout(QVBoxLayout):
                         '<b>' + _('Warning') + '</b>' + ': ',
                         _('BIP39 seeds may not be supported in the future.'),
                         '<br/><br/>',
-                        _('As technology matures, Litecoin address generation may change.'),
+                        _('As technology matures, Fujicoin address generation may change.'),
                         _('However, BIP39 seeds do not include a version number.'),
                         _('As a result, it is not possible to infer your wallet type from a BIP39 seed.'),
                         '<br/><br/>',
@@ -170,7 +170,7 @@ class KeysLayout(QVBoxLayout):
 class SeedDialog(WindowModalDialog):
 
     def __init__(self, parent, seed, passphrase):
-        WindowModalDialog.__init__(self, parent, ('Electrum-LTC - ' + _('Seed')))
+        WindowModalDialog.__init__(self, parent, ('Electrum-FJC - ' + _('Seed')))
         self.setMinimumWidth(400)
         vbox = QVBoxLayout(self)
         title =  _("Your wallet generation seed is:")

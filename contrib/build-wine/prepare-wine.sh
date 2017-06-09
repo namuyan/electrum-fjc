@@ -7,6 +7,7 @@ PYWIN32_URL=http://sourceforge.net/projects/pywin32/files/pywin32/Build%20219/py
 PYINSTALLER_URL=https://pypi.python.org/packages/source/P/PyInstaller/PyInstaller-2.1.zip
 NSIS_URL=http://prdownloads.sourceforge.net/nsis/nsis-2.46-setup.exe?download
 SETUPTOOLS_URL=https://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11.win32-py2.7.exe
+# https://github.com/vertcoin/electrum-vtc/commit/37425b28e7baa889a5d9bf3731a15f2a0ee58374 ñ¢ê›íË
 
 
 ## These settings probably don't need change
