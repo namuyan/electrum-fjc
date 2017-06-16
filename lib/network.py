@@ -212,7 +212,7 @@ class Network(util.DaemonThread):
         self.recent_servers = self.read_recent_servers()
 
         self.banner = 'The currency for Japan'
-        self.donation_address = ''
+        self.donation_address = 'FhXwYaZviCQVYrBMDov6PMpXj2Bixj6iC5'
         self.relay_fee = None
         self.headers = {}
         # callbacks passed with subscriptions

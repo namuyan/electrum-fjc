@@ -89,19 +89,19 @@ class ExchangeBase(PrintError):
 class Bleutrade(ExchangeBase):
     def get_rates(self, ccy):
         json = self.get_json('bleutrade.com/api/v2', '/public/getticker?market=FJC_%s' % ccy)
-        # 返り値 {'BTC': Decimal(0.1234)}
+        # {'BTC': Decimal(0.1234)}
         return {ccy: Decimal(json['result'][0]['Last'])}
     
     def history_ccys(self):
-        # ccyで使用される通貨類
+        # used for ccy
         return ['BTC', 'DOGE']
 
     def historical_rates(self, ccy):
         history = self.get_json('bleutrade.com/api/v2',
                                "/public/getmarkethistory?market=FJC_%s&count=100" % ccy)
-        # 返り値 {"2013-08-16":"2.75","2013-09-13":"2.54331"～～,"2013-09-18":"2.509977"}
+        # {"2013-08-16":"2.75","2013-09-13":"2.54331"----,"2013-09-18":"2.509977"}
         return dict([(h['TimeStamp'][:10], h['Price'])
-                     for h in history['result'])
+                     for h in history['result']])
 
 class Cryptopia(ExchangeBase):
     def get_rates(self, ccy):
@@ -120,8 +120,25 @@ class C_Cex(ExchangeBase):
         history = self.get_json('c-cex.com',
                                "/t/api_pub.html?a=getmarkethistory&market=FJC-%s&count=10" % ccy)
         return dict([(h['TimeStamp'][:10], h['Price'])
-                     for h in history['result'])
-# 他は403エラーで取得できず
+                     for h in history['result']])
+    
+class BitcoinAverage(ExchangeBase):
+    def get_rates(self, ccy):
+        json = self.get_json('apiv2.bitcoinaverage.com', '/indices/global/ticker/short')
+        return dict([(r.replace("LTC", ""), Decimal(json[r]['last']))
+                     for r in json if r != 'timestamp'])
+
+    def history_ccys(self):
+        return ['AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'EUR', 'GBP', 'IDR', 'ILS',
+                'MXN', 'NOK', 'NZD', 'PLN', 'RON', 'RUB', 'SEK', 'SGD', 'USD',
+                'ZAR']
+
+    def historical_rates(self, ccy):
+        history = self.get_csv('apiv2.bitcoinaverage.com',
+                               "/indices/global/history/LTC%s?period=alltime&format=csv" % ccy)
+        return dict([(h['DateTime'][:10], h['Average'])
+                     for h in history])
+
 
 def dictinvert(d):
     inv = {}
