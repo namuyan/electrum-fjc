@@ -1,4 +1,4 @@
-Electrum-FJC - Lightweight Litecoin client
+Electrum-FJC - Lightweight Fujicoin client
 ==========================================
 
 ::
@@ -23,7 +23,7 @@ Qt interface, install the Qt dependencies::
 
     sudo apt-get install python-qt4
     
-    sudo pip2 install git+git+https://github.com/namuyan/fjc-scrypt
+    sudo pip2 install git+https://github.com/namuyan/fjc-scrypt
 
 If you downloaded the official package (tar.gz), you can run
 Electrum from its root directory, without installing it on your
@@ -104,7 +104,7 @@ Mac OS X
 Windows
 -------
 
-See `contrib/build-wine/README` file.
+See `WINDOWS.md` file.
 
 
 Android
