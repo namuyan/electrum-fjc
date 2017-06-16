@@ -6,9 +6,9 @@ I use Windows7 Professional 64bit, Python2.7.13 32bit version (automatically 32b
 
 
 ### install Python2  
-![Python2.7 download1](http://imgur.com/hzbueo1)  
-First of all, download Python2.7 from <https://www.python.org/downloads/>.  
-![Python2.7 download2](http://imgur.com/r9KlIwr)  
+![Python2.7 download1](http://imgur.com/hzbueo1.png)  
+First of all, download [Python2.7](<https://www.python.org/downloads/>).  
+![Python2.7 download2](http://imgur.com/r9KlIwr.png)  
 Next, install, DO NOT FORGET TO CHECK PATH!  
 
 
@@ -18,7 +18,7 @@ Open CommandPrompt and `pip install win_inet_pton` and `pip install -U setuptool
 
 
 ### install PyQt4  
-![PyQt4 download](http://imgur.com/5SiW4z5)  
+![PyQt4 download](http://imgur.com/5SiW4z5.png)  
 Download PyQt4 binary from <https://sourceforge.net/projects/pyqt/files/PyQt4/PyQt-4.10/>.  
 Select  *PyQt4-4.10-gpl-Py2.7-Qt4.8.4-x32.exe* , and install PyQt4.  
 Next, you need to set PATH, check the PAHT to *QtGui4.dll*, for example `C:\Python27\Lib\site-packages\PyQt4`.
@@ -35,12 +35,12 @@ Compile `python setpu.py install`, it's easy.
 
 ### install electrum-fjc  
 Download from Github.  
-![electrum-fjc download1](http://imgur.com/EThSVZB)  
+![electrum-fjc download1](http://imgur.com/EThSVZB.png)  
 The img is example, check the download file path, and open CommandPrompt and `cd pass\to\electrum-fjc-master`  
 Next, `pyrcc4 icons.qrc -o gui/qt/icons_rc.py`, if don't work, you failed to PATH PyQt4.
 And install, `python setup.py install`  
 Wait for a few minutes....  
-![electrum-fjc download2](http://imgur.com/Nfi3bBg)  
+![electrum-fjc download2](http://imgur.com/Nfi3bBg.png)  
 Next, you need to create shortcut by yourself, and ADD "python".
 
 
