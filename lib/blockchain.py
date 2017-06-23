@@ -246,7 +246,7 @@ class Blockchain(util.PrintError):
         
     def KimotoGravityWell(self, height, chain=[], data=None):
         # print_msg ("height=",height,"chain=", chain, "data=", data)
-        BlocksTargetSpacing = 2.5 * 60  # 2.5 minutes
+        BlocksTargetSpacing = 1 * 60  # 1 minutes
         TimeDaySeconds = 60 * 60 * 24
         PastSecondsMin = TimeDaySeconds * 0.25
         PastSecondsMax = TimeDaySeconds * 7
@@ -259,7 +259,7 @@ class Blockchain(util.PrintError):
         PastRateAdjustmentRatio = 1.0
         bnProofOfWorkLimit = 0x00000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 
-        if (BlockLastSolvedIndex <= 0 or BlockLastSolvedIndex < PastSecondsMin):
+        if (BlockLastSolvedIndex <= 0 or BlockLastSolvedIndex < PastBlocksMin):
             new_target = bnProofOfWorkLimit
             new_bits = self.convbits(new_target)
             return new_bits, new_target
@@ -289,7 +289,7 @@ class Blockchain(util.PrintError):
 
             # print_msg ("last=",last)
             if (i == 1):
-                print_msg("reading(", BlockReadingIndex, ")=", reading)
+                # print_msg("reading(", BlockReadingIndex, ")=", reading)
                 PastDifficultyAverage = self.convbignum(reading.get('bits'))
             else:
                 PastDifficultyAverage = float(
