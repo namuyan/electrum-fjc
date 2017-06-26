@@ -43,7 +43,7 @@ from interface import Connection, Interface
 from blockchain import Blockchain
 from version import ELECTRUM_VERSION, PROTOCOL_VERSION
 
-DEFAULT_PORTS = {'t':'22001', 's':'22002'}
+DEFAULT_PORTS = {'t':'55001', 's':'55002'}
 
 #There is a schedule to move the default list to e-x (electrumx) by Jan 2018
 #Schedule is as follows:
@@ -51,8 +51,9 @@ DEFAULT_PORTS = {'t':'22001', 's':'22002'}
 #then gradually switch remaining nodes to e-x nodes
 
 DEFAULT_SERVERS = {
-    'localhost': DEFAULT_PORTS,
-	'namuyan.dip.jp': DEFAULT_PORTS,
+    'electrumx1.fujicoin.org': DEFAULT_PORTS,
+    'electrumx2.fujicoin.org': DEFAULT_PORTS,
+    'electrumx3.fujicoin.org': DEFAULT_PORTS,
     #'elec.luggs.co': {'s':'444'},
     #'electrum-ltc.bysh.me': DEFAULT_PORTS,
     #'electrum-ltc.ddns.net': DEFAULT_PORTS,
