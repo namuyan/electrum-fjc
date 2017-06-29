@@ -44,7 +44,7 @@ ADDRTYPE_P2SH = 16
 ADDRTYPE_P2WPKH = 164 # Pay-to-Witness-Public-Key-Hash segwitŠÖ˜A 36+128
 XPRV_HEADER = 0x0488ade4 # BIP32 Private_key
 XPUB_HEADER = 0x0488b21e # BIP32 Public_key
-HEADERS_URL = "https://fujicoin.org/blockchain_headers"
+HEADERS_URL = "https://electrum.fujicoin.org/blockchain_headers"
 GENESIS = "adb6d9cfd74075e7f91608add4bd2a2ea636f70856183086842667a1597714a0"
 
 '''
